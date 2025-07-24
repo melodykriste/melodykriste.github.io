@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>铁路线路标段建设监控大屏</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #0c1445 0%, #1a2855 100%);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .monitor-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            grid-template-rows: 80px 1fr 120px;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .header {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .left-panel, .right-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+        }
+
+        .map-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .footer {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card .icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #00d4ff;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .config-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #00d4ff, #00ff88);
+            border: none;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .route-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .route-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #00d4ff;
+        }
+
+        .route-item .route-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .route-item .route-info {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .progress-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .progress-item .project-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #00ff88;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.8rem;
+            text-align: right;
+            opacity: 0.8;
+        }
+
+        .legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+
+        .alert {
+            background: rgba(255, 69, 58, 0.2);
+            border: 1px solid rgba(255, 69, 58, 0.5);
+            color: #ff453a;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+
+        .success {
+            background: rgba(48, 209, 88, 0.2);
+            border: 1px solid rgba(48, 209, 88, 0.5);
+            color: #30d158;
+        }
+
+        .coordinate-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .route-controls {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            flex: 1;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff453a, #ff6b6b);
+        }
+
+        .btn-edit {
+            background: linear-gradient(45deg, #ff9500, #ffb800);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .status-active {
+            animation: pulse 2s infinite;
+        }
+
+        .leaflet-popup-content-wrapper {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .leaflet-popup-tip {
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .popup-content {
+            padding: 10px;
+        }
+
+        .popup-title {
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+
+        .popup-info {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="monitor-container">
+        <!-- 头部标题 -->
+        <div class="header">
+            <h1><i class="fas fa-train"></i> 铁路线路标段建设监控大屏</h1>
+        </div>
+
+        <!-- 左侧配置面板 -->
+        <div class="left-panel">
+            <div class="panel-title">
+                <i class="fas fa-cog"></i> 路线配置
+            </div>
+            
+            <div class="config-form">
+                <div class="form-group">
+                    <label>路线名称</label>
+                    <input type="text" id="routeName" placeholder="请输入路线名称">
+                </div>
+                
+                <div class="form-group">
+                    <label>起点坐标</label>
+                    <div class="coordinate-input">
+                        <input type="number" id="startLat" placeholder="纬度" step="0.000001">
+                        <input type="number" id="startLng" placeholder="经度" step="0.000001">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>终点坐标</label>
+                    <div class="coordinate-input">
+                        <input type="number" id="endLat" placeholder="纬度" step="0.000001">
+                        <input type="number" id="endLng" placeholder="经度" step="0.000001">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>路线类型</label>
+                    <select id="routeType">
+                        <option value="main">主干线</option>
+                        <option value="branch">支线</option>
+                        <option value="urban">城际线</option>
+                        <option value="freight">货运线</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>建设状态</label>
+                    <select id="constructionStatus">
+                        <option value="planning">规划中</option>
+                        <option value="construction">建设中</option>
+                        <option value="completed">已完成</option>
+                        <option value="suspended">暂停</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="addRoute()">
+                    <i class="fas fa-plus"></i> 添加路线
+                </button>
+            </div>
+
+            <div class="panel-title">
+                <i class="fas fa-list"></i> 路线列表
+            </div>
+            <div class="route-list" id="routeList">
+                <!-- 动态生成路线列表 -->
+            </div>
+        </div>
+
+        <!-- 中央地图区域 -->
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00d4ff;"></div>
+                    <span>主干线</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #00ff88;"></div>
+                    <span>支线</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff9500;"></div>
+                    <span>城际线</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff453a;"></div>
+                    <span>货运线</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧状态面板 -->
+        <div class="right-panel">
+            <div class="panel-title">
+                <i class="fas fa-chart-line"></i> 建设进度
+            </div>
+            
+            <div id="progressList">
+                <div class="progress-item">
+                    <div class="project-name">京张高铁延伸线</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                    <div class="progress-text">85% 完成</div>
+                </div>
+                
+                <div class="progress-item">
+                    <div class="project-name">沪昆客专东段</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 92%;"></div>
+                    </div>
+                    <div class="progress-text">92% 完成</div>
+                </div>
+                
+                <div class="progress-item">
+                    <div class="project-name">成渝中线高铁</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 68%;"></div>
+                    </div>
+                    <div class="progress-text">68% 完成</div>
+                </div>
+                
+                <div class="progress-item">
+                    <div class="project-name">西部陆海新通道</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 45%;"></div>
+                    </div>
+                    <div class="progress-text">45% 完成</div>
+                </div>
+            </div>
+
+            <div class="panel-title" style="margin-top: 30px;">
+                <i class="fas fa-exclamation-triangle"></i> 系统状态
+            </div>
+            
+            <div class="alert success">
+                <i class="fas fa-check-circle"></i> 系统运行正常
+            </div>
+            
+            <div class="alert">
+                <i class="fas fa-info-circle"></i> 2条路线需要更新进度
+            </div>
+        </div>
+
+        <!-- 底部统计面板 -->
+        <div class="footer">
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-route"></i></div>
+                <div class="value" id="totalRoutes">0</div>
+                <div class="label">总路线数</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-hammer"></i></div>
+                <div class="value" id="constructionRoutes">0</div>
+                <div class="label">在建路线</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-check-circle"></i></div>
+                <div class="value" id="completedRoutes">0</div>
+                <div class="label">已完成路线</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="icon"><i class="fas fa-chart-bar"></i></div>
+                <div class="value" id="totalProgress">0%</div>
+                <div class="label">总体进度</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // 全局变量
+        let map;
+        let routes = [];
+        let routeColors = {
+            main: '#00d4ff',
+            branch: '#00ff88',
+            urban: '#ff9500',
+            freight: '#ff453a'
+        };
+
+        // 初始化地图
+        function initMap() {
+            map = L.map('map').setView([39.9042, 116.4074], 5);
+            
+            // 使用深色地图样式
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(map);
+
+            // 添加一些示例路线
+            addSampleRoutes();
+        }
+
+        // 添加示例路线
+        function addSampleRoutes() {
+            const sampleRoutes = [
+                {
+                    name: '京沪高铁',
+                    startLat: 39.9042,
+                    startLng: 116.4074,
+                    endLat: 31.2304,
+                    endLng: 121.4737,
+                    type: 'main',
+                    status: 'completed'
+                },
+                {
+                    name: '京广高铁',
+                    startLat: 39.9042,
+                    startLng: 116.4074,
+                    endLat: 23.1291,
+                    endLng: 113.2644,
+                    type: 'main',
+                    status: 'completed'
+                },
+                {
+                    name: '成渝高铁',
+                    startLat: 30.5728,
+                    startLng: 104.0668,
+                    endLat: 29.5647,
+                    endLng: 106.5507,
+                    type: 'urban',
+                    status: 'construction'
+                }
+            ];
+
+            sampleRoutes.forEach(route => {
+                routes.push(route);
+                drawRoute(route);
+            });
+
+            updateRouteList();
+            updateStatistics();
+        }
+
+        // 绘制路线
+        function drawRoute(route) {
+            const color = routeColors[route.type];
+            const opacity = route.status === 'completed' ? 1 : 0.6;
+            const weight = route.type === 'main' ? 4 : 3;
+            
+            // 创建路线
+            const polyline = L.polyline([
+                [route.startLat, route.startLng],
+                [route.endLat, route.endLng]
+            ], {
+                color: color,
+                weight: weight,
+                opacity: opacity,
+                className: route.status === 'construction' ? 'status-active' : ''
+            }).addTo(map);
+
+            // 添加起点标记
+            L.marker([route.startLat, route.startLng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                })
+            }).addTo(map);
+
+            // 添加终点标记
+            L.marker([route.endLat, route.endLng], {
+                icon: L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white;"></div>`,
+                    iconSize: [16, 16],
+                    iconAnchor: [8, 8]
+                })
+            }).addTo(map);
+
+            // 添加弹窗信息
+            const popupContent = `
+                <div class="popup-content">
+                    <div class="popup-title">${route.name}</div>
+                    <div class="popup-info">
+                        <strong>类型:</strong> ${getRouteTypeText(route.type)}<br>
+                        <strong>状态:</strong> ${getStatusText(route.status)}<br>
+                        <strong>起点:</strong> ${route.startLat.toFixed(4)}, ${route.startLng.toFixed(4)}<br>
+                        <strong>终点:</strong> ${route.endLat.toFixed(4)}, ${route.endLng.toFixed(4)}
+                    </div>
+                </div>
+            `;
+            
+            polyline.bindPopup(popupContent);
+
+            // 保存引用以便后续操作
+            route.polyline = polyline;
+        }
+
+        // 添加新路线
+        function addRoute() {
+            const name = document.getElementById('routeName').value;
+            const startLat = parseFloat(document.getElementById('startLat').value);
+            const startLng = parseFloat(document.getElementById('startLng').value);
+            const endLat = parseFloat(document.getElementById('endLat').value);
+            const endLng = parseFloat(document.getElementById('endLng').value);
+            const type = document.getElementById('routeType').value;
+            const status = document.getElementById('constructionStatus').value;
+
+            // 验证输入
+            if (!name || isNaN(startLat) || isNaN(startLng) || isNaN(endLat) || isNaN(endLng)) {
+                alert('请填写完整的路线信息！');
+                return;
+            }
+
+            // 验证坐标范围
+            if (Math.abs(startLat) > 90 || Math.abs(endLat) > 90 || 
+                Math.abs(startLng) > 180 || Math.abs(endLng) > 180) {
+                alert('坐标值超出有效范围！');
+                return;
+            }
+
+            const route = {
+                name,
+                startLat,
+                startLng,
+                endLat,
+                endLng,
+                type,
+                status
+            };
+
+            routes.push(route);
+            drawRoute(route);
+            updateRouteList();
+            updateStatistics();
+
+            // 清空表单
+            document.getElementById('routeName').value = '';
+            document.getElementById('startLat').value = '';
+            document.getElementById('startLng').value = '';
+            document.getElementById('endLat').value = '';
+            document.getElementById('endLng').value = '';
+
+            // 显示成功消息
+            showMessage('路线添加成功！', 'success');
+        }
+
+        // 更新路线列表
+        function updateRouteList() {
+            const routeList = document.getElementById('routeList');
+            routeList.innerHTML = '';
+
+            routes.forEach((route, index) => {
+                const routeItem = document.createElement('div');
+                routeItem.className = 'route-item';
+                routeItem.innerHTML = `
+                    <div class="route-name">${route.name}</div>
+                    <div class="route-info">
+                        类型: ${getRouteTypeText(route.type)}<br>
+                        状态: ${getStatusText(route.status)}
+                    </div>
+                    <div class="route-controls">
+                        <button class="btn btn-small btn-edit" onclick="editRoute(${index})">
+                            <i class="fas fa-edit"></i> 编辑
+                        </button>
+                        <button class="btn btn-small btn-danger" onclick="deleteRoute(${index})">
+                            <i class="fas fa-trash"></i> 删除
+                        </button>
+                    </div>
+                `;
+                routeList.appendChild(routeItem);
+            });
+        }
+
+        // 删除路线
+        function deleteRoute(index) {
+            if (confirm('确定要删除这条路线吗？')) {
+                const route = routes[index];
+                if (route.polyline) {
+                    map.removeLayer(route.polyline);
+                }
+                routes.splice(index, 1);
+                updateRouteList();
+                updateStatistics();
+                showMessage('路线删除成功！', 'success');
+            }
+        }
+
+        // 编辑路线（简化版，实际可以做成模态框）
+        function editRoute(index) {
+            const route = routes[index];
+            document.getElementById('routeName').value = route.name;
+            document.getElementById('startLat').value = route.startLat;
+            document.getElementById('startLng').value = route.startLng;
+            document.getElementById('endLat').value = route.endLat;
+            document.getElementById('endLng').value = route.endLng;
+            document.getElementById('routeType').value = route.type;
+            document.getElementById('constructionStatus').value = route.status;
+            
+            // 删除原路线，用户可以重新添加
+            deleteRoute(index);
+        }
+
+        // 更新统计信息
+        function updateStatistics() {
+            const totalRoutes = routes.length;
+            const constructionRoutes = routes.filter(r => r.status === 'construction').length;
+            const completedRoutes = routes.filter(r => r.status === 'completed').length;
+            const totalProgress = totalRoutes > 0 ? Math.round((completedRoutes / totalRoutes) * 100) : 0;
+
+            document.getElementById('totalRoutes').textContent = totalRoutes;
+            document.getElementById('constructionRoutes').textContent = constructionRoutes;
+            document.getElementById('completedRoutes').textContent = completedRoutes;
+            document.getElementById('totalProgress').textContent = totalProgress + '%';
+        }
+
+        // 获取路线类型文本
+        function getRouteTypeText(type) {
+            const types = {
+                main: '主干线',
+                branch: '支线',
+                urban: '城际线',
+                freight: '货运线'
+            };
+            return types[type] || type;
+        }
+
+        // 获取状态文本
+        function getStatusText(status) {
+            const statuses = {
+                planning: '规划中',
+                construction: '建设中',
+                completed: '已完成',
+                suspended: '暂停'
+            };
+            return statuses[status] || status;
+        }
+
+        // 显示消息
+        function showMessage(message, type = 'info') {
+            // 创建临时消息框
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `alert ${type}`;
+            messageDiv.innerHTML = `<i class="fas fa-info-circle"></i> ${message}`;
+            messageDiv.style.position = 'fixed';
+            messageDiv.style.top = '20px';
+            messageDiv.style.right = '20px';
+            messageDiv.style.zIndex = '10000';
+            messageDiv.style.minWidth = '300px';
+            
+            document.body.appendChild(messageDiv);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                document.body.removeChild(messageDiv);
+            }, 3000);
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initMap();
+            
+            // 添加实时时间显示
+            function updateTime() {
+                const now = new Date();
+                const timeStr = now.toLocaleString('zh-CN');
+                document.title = `铁路监控大屏 - ${timeStr}`;
+            }
+            
+            updateTime();
+            setInterval(updateTime, 1000);
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                addRoute();
+            }
+        });
+    </script>
+</body>
+</html>
