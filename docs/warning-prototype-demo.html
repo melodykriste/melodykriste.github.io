@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预警参数设置系统 - 原型演示</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .nav-tab.active {
+            background: white;
+            border-bottom-color: #4a90e2;
+            color: #4a90e2;
+            font-weight: bold;
+        }
+        
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .warning-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .warning-card {
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            background: white;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+        
+        .warning-card.enabled {
+            border-color: #28a745;
+            box-shadow: 0 4px 20px rgba(40, 167, 69, 0.15);
+        }
+        
+        .warning-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        
+        .icon {
+            font-size: 20px;
+        }
+        
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.active {
+            background: #28a745;
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .card-desc {
+            color: #6c757d;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            transition: border-color 0.2s;
+        }
+        
+        .form-control:focus {
+            border-color: #4a90e2;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        .radio-item input[type="radio"] {
+            margin: 0;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: #212529;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .badge-high {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+        }
+        
+        .badge-medium {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: #212529;
+        }
+        
+        .notice {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #1565c0;
+        }
+        
+        .alert-demo {
+            background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);
+            border: 2px solid #fc8181;
+            border-radius: 12px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.15);
+        }
+        
+        .alert-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .alert-content {
+            padding: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        
+        .info-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #4a90e2;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-number.total { color: #495057; }
+        .stat-number.high { color: #dc3545; }
+        .stat-number.medium { color: #ffc107; }
+        .stat-number.pending { color: #007bff; }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #f0f8f0 0%, #e8f5e8 100%);
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.1);
+        }
+        
+        .feature-title {
+            color: #28a745;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .feature-list {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.8;
+        }
+        
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .content { padding: 15px; }
+            .warning-grid { grid-template-columns: 1fr; }
+            .nav-tabs { flex-direction: column; }
+            .btn-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页面头部 -->
+        <div class="header">
+            <h1>💼 预警参数设置系统</h1>
+            <p>资金安全监管平台 - 产品原型演示</p>
+        </div>
+
+        <!-- 导航标签 -->
+        <div class="nav-tabs">
+            <div class="nav-tab active">📋 预警设置</div>
+            <div class="nav-tab">📊 预警查看</div>
+            <div class="nav-tab">🔔 预警弹窗</div>
+            <div class="nav-tab">⚙️ 系统功能</div>
+        </div>
+
+        <!-- 主要内容 -->
+        <div class="content">
+            <!-- 权限提示 -->
+            <div class="notice">
+                <strong>🔐 权限提示：</strong> 当前用户为业主单位，拥有完整的预警配置权限。施工单位用户只能查看配置信息。
+            </div>
+
+            <!-- 预警配置卡片网格 -->
+            <div class="warning-grid">
+                <!-- 关键字预警 -->
+                <div class="warning-card enabled">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="icon">🔍</span>
+                            <span>关键字预警</span>
+                            <span class="badge badge-medium">中风险</span>
+                        </div>
+                        <div class="toggle-switch active"></div>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-desc">根据收款关键字及备注或摘要关键字进行预警，有效识别可疑交易。</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">关键字类型</label>
+                            <select class="form-control">
+                                <option>备注/摘要关键字</option>
+                                <option>收款单位关键字</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">预警级别</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" name="level1" checked>
+                                    <span>中风险</span>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="level1">
+                                    <span>高风险</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">处置方式</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" name="process1">
+                                    <span>仅查看</span>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="process1" checked>
+                                    <span>业主审核</span>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="process1">
+                                    <span>直接拒绝</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button class="btn btn-primary">🔧 修改配置</button>
+                            <button class="btn btn-success">🧪 测试规则</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 黑名单预警 -->
+                <div class="warning-card enabled">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="icon">🚫</span>
+                            <span>黑名单预警</span>
+                            <span class="badge badge-high">高风险</span>
+                        </div>
+                        <div class="toggle-switch active"></div>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-desc">根据收款方黑名单进行预警，防止向风险企业付款。</p>
+                        
+                        <div class="notice">
+                            <strong>📊 当前名单：</strong>共 156 条记录<br>
+                            <strong>🕒 最后更新：</strong>2024-01-15 14:30
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button class="btn btn-primary">📤 上传文件</button>
+                            <button class="btn btn-warning">👁️ 查看名单</button>
+                            <button class="btn btn-success">📥 下载模板</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 频繁付款预警 -->
+                <div class="warning-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="icon">⚡</span>
+                            <span>频繁付款预警</span>
+                            <span class="badge badge-medium">中风险</span>
+                        </div>
+                        <div class="toggle-switch"></div>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-desc">检测向同一收款人的频繁付款行为，识别异常资金流向。</p>
+                        
+                        <div class="form-group">
+                            <label class="form-label">预警规则设置</label>
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                                <span>同一收款人</span>
+                                <input type="number" class="form-control" value="30" style="width: 80px;">
+                                <span>日内累计付款</span>
+                                <input type="number" class="form-control" value="3" style="width: 80px;">
+                                <span>次以上预警</span>
+                            </div>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button class="btn btn-primary">🛡️ 保守模式</button>
+                            <button class="btn btn-primary">⚖️ 平衡模式</button>
+                            <button class="btn btn-primary">🔓 宽松模式</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 司法冻结预警 -->
+                <div class="warning-card enabled">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <span class="icon">⚖️</span>
+                            <span>司法冻结预警</span>
+                            <span class="badge badge-high">高风险（固定）</span>
+                        </div>
+                        <div class="toggle-switch active"></div>
+                    </div>
+                    <div class="card-content">
+                        <p class="card-desc">监管账户发生司法冻结或司法扣划时立即预警。</p>
+                        
+                        <div class="notice" style="background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); border-color: #fc8181; color: #c53030;">
+                            <strong>⚠️ 重要提醒：</strong>此预警属于高风险预警，建议设置为直接拒绝或业主审核
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">处置方式</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" name="process4">
+                                    <span>仅查看</span>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="process4" checked>
+                                    <span>直接拒绝</span>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" name="process4">
+                                    <span>业主审核</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 批量操作区域 -->
+            <div class="warning-card" style="margin-bottom: 30px;">
+                <div class="card-header">
+                    <div class="card-title">
+                        <span class="icon">⚙️</span>
+                        <span>批量操作</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <div class="btn-group">
+                        <button class="btn btn-success">✅ 启用所有预警</button>
+                        <button class="btn btn-warning">❌ 禁用所有预警</button>
+                        <button class="btn btn-primary">🔄 恢复默认配置</button>
+                        <button class="btn btn-primary">📤 导出配置</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 统计概览 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number total">248</div>
+                    <div>总预警数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number high">23</div>
+                    <div>高风险</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number medium">225</div>
+                    <div>中风险</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number pending">45</div>
+                    <div>未处理</div>
+                </div>
+            </div>
+
+            <!-- 预警弹窗演示 -->
+            <div class="alert-demo">
+                <div class="alert-header">
+                    <div class="alert-icon">⚠️</div>
+                    <div>
+                        <h3 style="margin: 0;">高风险预警提醒</h3>
+                        <p style="margin: 5px 0 0 0; opacity: 0.9;">检测到资金安全风险</p>
+                    </div>
+                </div>
+                <div class="alert-content">
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>预警类型：</strong><span class="badge badge-high">黑名单预警</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>风险等级：</strong><span class="badge badge-high">高风险</span>
+                        </div>
+                        <div class="info-item">
+                            <strong>触发时间：</strong>2024-01-15 14:30:25
+                        </div>
+                        <div class="info-item">
+                            <strong>处置方式：</strong>直接拒绝
+                        </div>
+                    </div>
+                    
+                    <div class="notice" style="background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%); border-color: #fc8181; color: #c53030;">
+                        <h4>🚨 预警信息</h4>
+                        <p>收款方"风险企业A"在系统黑名单中，此次支付存在较高风险，建议立即停止操作并联系相关负责人确认。</p>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <h4>📋 详细信息</h4>
+                        <p><strong>收款方：</strong>风险企业A</p>
+                        <p><strong>账号：</strong>1234567890123456</p>
+                        <p><strong>支付金额：</strong>¥500,000.00</p>
+                        <p><strong>申请人：</strong>张三 (施工单位)</p>
+                    </div>
+                    
+                    <div class="btn-group" style="justify-content: flex-end;">
+                        <button class="btn btn-warning">📋 查看历史</button>
+                        <button class="btn btn-danger">🚨 立即处理</button>
+                        <button class="btn btn-primary">⏰ 稍后处理</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 功能特性展示 -->
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-title">🔍 11种预警类型</div>
+                    <ul class="feature-list">
+                        <li>关键字预警</li>
+                        <li>黑名单预警</li>
+                        <li>重复性预警（2种）</li>
+                        <li>司法冻结预警</li>
+                        <li>资金挪用预警（2种）</li>
+                        <li>关联方预警</li>
+                        <li>拖欠农民工预警（3种）</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">⚙️ 灵活配置</div>
+                    <ul class="feature-list">
+                        <li>预警级别：中风险/高风险</li>
+                        <li>处置方式：仅查看/直接拒绝/业主审核</li>
+                        <li>个性化参数配置</li>
+                        <li>批量操作支持</li>
+                        <li>快速配置模板</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">🛡️ 权限管理</div>
+                    <ul class="feature-list">
+                        <li>业主单位：完整配置权限</li>
+                        <li>施工单位：只能查看</li>
+                        <li>复核员：可处理预警</li>
+                        <li>操作权限验证</li>
+                        <li>安全审计日志</li>
+                    </ul>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-title">📊 智能管理</div>
+                    <ul class="feature-list">
+                        <li>实时预警展示</li>
+                        <li>多维度筛选</li>
+                        <li>统计分析</li>
+                        <li>批量处理</li>
+                        <li>数据导出</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 业务价值说明 -->
+            <div class="notice">
+                <h4>🎯 业务价值</h4>
+                <p style="margin-bottom: 10px;">本预警系统通过智能化的风险识别和灵活的配置管理，为建筑工程项目资金监管提供了全方位的安全保障：</p>
+                <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+                    <li><strong>🛡️ 风险防控：</strong>多维度预警规则，及时发现资金安全风险</li>
+                    <li><strong>📋 合规管理：</strong>确保农民工工资按时足额发放，避免拖欠风险</li>
+                    <li><strong>⚡ 效率提升：</strong>自动化预警处理，减少人工审核工作量</li>
+                    <li><strong>🔍 透明监管：</strong>完整的预警记录和处理流程，确保监管透明</li>
+                    <li><strong>⚙️ 灵活配置：</strong>根据项目特点灵活调整预警规则和参数</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 简单的交互效果
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                this.classList.toggle('active');
+                const card = this.closest('.warning-card');
+                card.classList.toggle('enabled');
+            });
+        });
+
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 按钮点击效果
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+    </script>
+</body>
+</html>
