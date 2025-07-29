@@ -1,0 +1,412 @@
+{
+  "projectInfo": {
+    "name": "预警参数设置系统",
+    "version": "1.0.0",
+    "description": "用于Axure原型设计的资源文件",
+    "author": "Development Team"
+  },
+  "globalVariables": {
+    "currentUser": {
+      "name": "用户角色",
+      "type": "text",
+      "defaultValue": "owner",
+      "options": ["owner", "contractor", "reviewer"]
+    },
+    "currentPage": {
+      "name": "当前页面",
+      "type": "text",
+      "defaultValue": "settings"
+    },
+    "selectedWarning": {
+      "name": "选中的预警",
+      "type": "text",
+      "defaultValue": ""
+    }
+  },
+  "componentStyles": {
+    "colors": {
+      "primary": "#409EFF",
+      "success": "#67C23A",
+      "warning": "#E6A23C",
+      "danger": "#F56C6C",
+      "info": "#909399",
+      "background": "#F5F7FA",
+      "border": "#E4E7ED",
+      "text": "#303133",
+      "textSecondary": "#606266"
+    },
+    "fonts": {
+      "primary": "PingFang SC, Microsoft YaHei, sans-serif",
+      "size": {
+        "small": "12px",
+        "normal": "14px",
+        "large": "16px",
+        "title": "18px",
+        "heading": "20px"
+      }
+    },
+    "spacing": {
+      "xs": "4px",
+      "sm": "8px",
+      "md": "16px",
+      "lg": "24px",
+      "xl": "32px"
+    }
+  },
+  "warningTypes": [
+    {
+      "id": "keyword",
+      "name": "关键字预警",
+      "description": "检测付款备注或收款方名称中的敏感关键字",
+      "defaultLevel": "medium",
+      "defaultProcessType": "view_only",
+      "configurable": ["level", "processType", "keywordType", "keywords"],
+      "icon": "🔍"
+    },
+    {
+      "id": "blacklist",
+      "name": "黑名单预警",
+      "description": "检测收款方是否在黑名单中",
+      "defaultLevel": "high",
+      "defaultProcessType": "direct_reject",
+      "configurable": ["level", "processType", "blacklist"],
+      "icon": "🚫"
+    },
+    {
+      "id": "duplicate_payment",
+      "name": "重复付款预警",
+      "description": "检测相同收款方和金额的重复支付",
+      "defaultLevel": "medium",
+      "defaultProcessType": "owner_review",
+      "configurable": ["level", "processType"],
+      "icon": "🔄"
+    },
+    {
+      "id": "frequent_payment",
+      "name": "频繁付款预警",
+      "description": "检测向同一收款方的频繁付款",
+      "defaultLevel": "medium",
+      "defaultProcessType": "owner_review",
+      "configurable": ["level", "processType", "days", "times"],
+      "icon": "⚡"
+    },
+    {
+      "id": "judicial_freeze",
+      "name": "司法冻结预警",
+      "description": "监管账户发生司法冻结或扣划",
+      "defaultLevel": "high",
+      "defaultProcessType": "direct_reject",
+      "configurable": ["processType"],
+      "icon": "⚖️"
+    },
+    {
+      "id": "wage_misuse",
+      "name": "工资挪用预警",
+      "description": "农民工工资超过历史平均水平",
+      "defaultLevel": "medium",
+      "defaultProcessType": "owner_review",
+      "configurable": ["level", "processType", "multiplierA", "multiplierB"],
+      "icon": "💰"
+    },
+    {
+      "id": "related_party",
+      "name": "关联方预警",
+      "description": "向关联企业发起支付",
+      "defaultLevel": "medium",
+      "defaultProcessType": "owner_review",
+      "configurable": ["level", "processType"],
+      "icon": "🔗"
+    },
+    {
+      "id": "payment_misuse",
+      "name": "代发混用预警",
+      "description": "代发资金模块进行对公账户付款",
+      "defaultLevel": "medium",
+      "defaultProcessType": "owner_review",
+      "configurable": ["level", "processType"],
+      "icon": "🔀"
+    },
+    {
+      "id": "wage_delay_attendance",
+      "name": "考勤未发预警",
+      "description": "有考勤记录但未发放工资",
+      "defaultLevel": "medium",
+      "defaultProcessType": "view_only",
+      "configurable": ["level"],
+      "icon": "📅"
+    },
+    {
+      "id": "wage_inconsistent",
+      "name": "工资不一致预警",
+      "description": "实发金额与应发金额不一致",
+      "defaultLevel": "medium",
+      "defaultProcessType": "owner_review",
+      "configurable": ["level", "processType"],
+      "icon": "📊"
+    },
+    {
+      "id": "wage_overdue",
+      "name": "工资超期预警",
+      "description": "超过进场时间未发放工资",
+      "defaultLevel": "medium",
+      "defaultProcessType": "view_only",
+      "configurable": ["level", "days"],
+      "icon": "⏰"
+    }
+  ],
+  "sampleData": {
+    "warningConfigs": [
+      {
+        "id": "keyword",
+        "enabled": true,
+        "level": "medium",
+        "processType": "view_only",
+        "config": {
+          "keywordType": "remark",
+          "keywords": ["转账", "借款", "个人", "私人", "代付"]
+        }
+      },
+      {
+        "id": "blacklist",
+        "enabled": true,
+        "level": "high",
+        "processType": "direct_reject",
+        "config": {
+          "blacklistCount": 12,
+          "lastUpdated": "2024-01-15"
+        }
+      },
+      {
+        "id": "frequent_payment",
+        "enabled": false,
+        "level": "medium",
+        "processType": "owner_review",
+        "config": {
+          "days": 7,
+          "times": 3
+        }
+      }
+    ],
+    "warningRecords": [
+      {
+        "id": "WR001",
+        "type": "keyword",
+        "level": "high",
+        "status": "pending",
+        "triggeredAt": "2024-01-20 14:30:25",
+        "paymentId": "PAY202401200001",
+        "payee": "XXX建筑工程有限公司",
+        "amount": 50000.00,
+        "reason": "备注中包含敏感关键字'转账'"
+      },
+      {
+        "id": "WR002",
+        "type": "blacklist",
+        "level": "high",
+        "status": "processed",
+        "triggeredAt": "2024-01-19 16:45:12",
+        "processedAt": "2024-01-19 17:20:30",
+        "paymentId": "PAY202401190005",
+        "payee": "黑名单公司A",
+        "amount": 80000.00,
+        "reason": "收款方在黑名单中"
+      },
+      {
+        "id": "WR003",
+        "type": "frequent_payment",
+        "level": "medium",
+        "status": "ignored",
+        "triggeredAt": "2024-01-18 10:15:45",
+        "paymentId": "PAY202401180003",
+        "payee": "常用供应商B",
+        "amount": 25000.00,
+        "reason": "7天内第4次向该收款方付款"
+      }
+    ],
+    "statistics": {
+      "totalWarnings": 156,
+      "highRiskCount": 23,
+      "mediumRiskCount": 133,
+      "pendingCount": 45,
+      "processedCount": 98,
+      "ignoredCount": 13
+    },
+    "blacklistSample": [
+      {
+        "name": "风险公司A",
+        "account": "1234567890123456789",
+        "addedDate": "2024-01-10",
+        "reason": "法院执行"
+      },
+      {
+        "name": "问题企业B",
+        "account": "9876543210987654321",
+        "addedDate": "2024-01-08",
+        "reason": "欺诈风险"
+      }
+    ]
+  },
+  "uiComponents": {
+    "warningCard": {
+      "width": "360px",
+      "height": "280px",
+      "padding": "20px",
+      "borderRadius": "8px",
+      "border": "1px solid #E4E7ED",
+      "boxShadow": "0 2px 12px rgba(0,0,0,0.1)",
+      "elements": [
+        {
+          "type": "title",
+          "text": "预警名称",
+          "fontSize": "18px",
+          "fontWeight": "bold",
+          "position": "top-left"
+        },
+        {
+          "type": "switch",
+          "position": "top-right",
+          "width": "40px",
+          "height": "20px"
+        },
+        {
+          "type": "status",
+          "position": "below-title",
+          "elements": ["dot", "text"]
+        },
+        {
+          "type": "form",
+          "position": "center",
+          "elements": ["level-select", "process-select", "custom-config"]
+        },
+        {
+          "type": "buttons",
+          "position": "bottom",
+          "elements": ["modify", "reset"]
+        }
+      ]
+    },
+    "warningModal": {
+      "width": "600px",
+      "height": "auto",
+      "maxHeight": "80vh",
+      "borderRadius": "8px",
+      "boxShadow": "0 4px 20px rgba(0,0,0,0.3)",
+      "elements": [
+        {
+          "type": "header",
+          "height": "60px",
+          "elements": ["icon", "title", "close-button"]
+        },
+        {
+          "type": "risk-indicator",
+          "height": "40px",
+          "backgroundColor": "conditional"
+        },
+        {
+          "type": "content",
+          "padding": "20px",
+          "elements": ["warning-info", "payment-details"]
+        },
+        {
+          "type": "actions",
+          "height": "60px",
+          "elements": ["view-detail", "process", "later", "ignore"]
+        }
+      ]
+    },
+    "dataTable": {
+      "width": "100%",
+      "borderRadius": "4px",
+      "border": "1px solid #EBEEF5",
+      "elements": [
+        {
+          "type": "header",
+          "height": "48px",
+          "backgroundColor": "#F5F7FA",
+          "columns": ["checkbox", "type", "level", "time", "status", "actions"]
+        },
+        {
+          "type": "rows",
+          "height": "48px",
+          "alternateBackground": "#FAFAFA"
+        }
+      ]
+    }
+  },
+  "interactionRules": [
+    {
+      "trigger": "switch-toggle",
+      "condition": "warning-card",
+      "action": "toggle-enabled-state",
+      "effects": ["update-status-indicator", "enable-disable-form"]
+    },
+    {
+      "trigger": "modify-button-click",
+      "condition": "warning-enabled",
+      "action": "open-config-dialog",
+      "effects": ["show-modal", "load-current-config"]
+    },
+    {
+      "trigger": "table-row-click",
+      "condition": "warning-history",
+      "action": "show-warning-detail",
+      "effects": ["highlight-row", "open-detail-modal"]
+    },
+    {
+      "trigger": "filter-change",
+      "condition": "warning-history",
+      "action": "update-table-data",
+      "effects": ["filter-rows", "update-statistics"]
+    }
+  ],
+  "pageFlows": [
+    {
+      "name": "预警配置流程",
+      "steps": [
+        "进入预警设置页面",
+        "选择要配置的预警类型",
+        "开启预警开关",
+        "设置预警级别",
+        "选择处置方式",
+        "配置特定参数",
+        "保存配置",
+        "显示成功提示"
+      ]
+    },
+    {
+      "name": "预警处理流程",
+      "steps": [
+        "预警触发",
+        "弹出预警提示",
+        "用户查看预警详情",
+        "选择处理方式",
+        "执行处理操作",
+        "更新预警状态",
+        "记录处理日志"
+      ]
+    }
+  ],
+  "axureInstructions": {
+    "setup": [
+      "创建新的Axure RP项目",
+      "导入提供的组件样式规范",
+      "创建全局变量",
+      "设置页面尺寸为1200px宽度",
+      "创建基础组件母版"
+    ],
+    "implementation": [
+      "按照页面布局创建静态元素",
+      "添加动态面板用于状态切换",
+      "配置条件逻辑和交互事件",
+      "使用中继器显示列表数据",
+      "添加表单验证规则"
+    ],
+    "testing": [
+      "测试所有交互功能",
+      "验证数据流转正确性",
+      "检查响应式布局",
+      "确认权限控制逻辑",
+      "测试异常情况处理"
+    ]
+  }
+}
