@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>预警参数设置系统原型</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            background-color: #4a90e2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .section {
+            background-color: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+        
+        .card-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .button {
+            background-color: #4a90e2;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            margin: 5px;
+            cursor: pointer;
+        }
+        
+        .button-success {
+            background-color: #28a745;
+        }
+        
+        .button-danger {
+            background-color: #dc3545;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .table th, .table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .table th {
+            background-color: #f2f2f2;
+        }
+        
+        .badge {
+            padding: 3px 8px;
+            font-size: 12px;
+            color: white;
+            border-radius: 3px;
+        }
+        
+        .badge-high {
+            background-color: #dc3545;
+        }
+        
+        .badge-medium {
+            background-color: #ffc107;
+            color: black;
+        }
+        
+        .notice {
+            background-color: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .grid-item {
+            flex: 1;
+            min-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>预警参数设置系统</h1>
+        <p>资金安全监管原型演示</p>
+    </div>
+
+    <!-- 第一部分：预警参数设置 -->
+    <div class="section">
+        <div class="section-title">1. 预警参数设置页面</div>
+        
+        <div class="notice">
+            <strong>权限提示：</strong>当前用户为业主单位，拥有完整的预警配置权限。
+        </div>
+        
+        <div class="grid">
+            <!-- 关键字预警 -->
+            <div class="grid-item">
+                <div class="card">
+                    <div class="card-title">🔍 关键字预警 <span class="badge badge-medium">中风险</span></div>
+                    <p>根据收款关键字及备注或摘要关键字进行预警</p>
+                    
+                    <div style="margin: 10px 0;">
+                        <label>关键字类型：</label>
+                        <select>
+                            <option>备注/摘要关键字</option>
+                            <option>收款单位关键字</option>
+                        </select>
+                    </div>
+                    
+                    <div style="margin: 10px 0;">
+                        <label>预警级别：</label>
+                        <input type="radio" name="level1" checked> 中风险
+                        <input type="radio" name="level1"> 高风险
+                    </div>
+                    
+                    <div style="margin: 10px 0;">
+                        <label>处置方式：</label>
+                        <input type="radio" name="process1"> 仅查看
+                        <input type="radio" name="process1" checked> 业主审核
+                        <input type="radio" name="process1"> 直接拒绝
+                    </div>
+                    
+                    <button class="button">修改配置</button>
+                    <button class="button button-success">测试规则</button>
+                </div>
+            </div>
+            
+            <!-- 黑名单预警 -->
+            <div class="grid-item">
+                <div class="card">
+                    <div class="card-title">🚫 黑名单预警 <span class="badge badge-high">高风险</span></div>
+                    <p>根据收款方黑名单进行预警</p>
+                    
+                    <div class="notice">
+                        <strong>当前名单：</strong>共 156 条记录<br>
+                        <strong>最后更新：</strong>2024-01-15 14:30
+                    </div>
+                    
+                    <button class="button">上传文件</button>
+                    <button class="button">查看名单</button>
+                    <button class="button button-success">下载模板</button>
+                </div>
+            </div>
+            
+            <!-- 频繁付款预警 -->
+            <div class="grid-item">
+                <div class="card">
+                    <div class="card-title">⚡ 频繁付款预警 <span class="badge badge-medium">中风险</span></div>
+                    <p>同一收款人30日内累计付款3次以上预警</p>
+                    
+                    <div style="margin: 10px 0;">
+                        <label>预警规则：</label><br>
+                        同一收款人 <input type="number" value="30" style="width: 60px;"> 日内累计付款 
+                        <input type="number" value="3" style="width: 60px;"> 次以上预警
+                    </div>
+                    
+                    <button class="button">保守模式</button>
+                    <button class="button">平衡模式</button>
+                    <button class="button">宽松模式</button>
+                </div>
+            </div>
+            
+            <!-- 司法冻结预警 -->
+            <div class="grid-item">
+                <div class="card">
+                    <div class="card-title">⚖️ 司法冻结预警 <span class="badge badge-high">高风险（固定）</span></div>
+                    <p>监管账户发生司法冻结或司法扣划被抽走，则进行预警</p>
+                    
+                    <div class="notice">
+                        <strong>⚠️ 重要提醒：</strong>此预警属于高风险预警，建议设置为直接拒绝或业主审核
+                    </div>
+                    
+                    <div style="margin: 10px 0;">
+                        <label>处置方式：</label>
+                        <input type="radio" name="process4"> 仅查看
+                        <input type="radio" name="process4" checked> 直接拒绝
+                        <input type="radio" name="process4"> 业主审核
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 批量操作 -->
+        <div class="card">
+            <div class="card-title">⚙️ 批量操作</div>
+            <button class="button button-success">启用所有预警</button>
+            <button class="button">禁用所有预警</button>
+            <button class="button">恢复默认配置</button>
+        </div>
+    </div>
+
+    <!-- 第二部分：预警历史记录 -->
+    <div class="section">
+        <div class="section-title">2. 预警历史记录页面</div>
+        
+        <!-- 筛选条件 -->
+        <div class="card">
+            <div class="card-title">筛选条件</div>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                <div>
+                    <label>风险等级：</label>
+                    <select>
+                        <option>全部</option>
+                        <option>高风险</option>
+                        <option>中风险</option>
+                    </select>
+                </div>
+                <div>
+                    <label>预警类型：</label>
+                    <select>
+                        <option>全部类型</option>
+                        <option>关键字预警</option>
+                        <option>黑名单预警</option>
+                    </select>
+                </div>
+                <div>
+                    <label>处理状态：</label>
+                    <select>
+                        <option>全部</option>
+                        <option>已处理</option>
+                        <option>未处理</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="button">搜索</button>
+                    <button class="button">重置</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 统计信息 -->
+        <div class="grid">
+            <div class="grid-item">
+                <div class="card" style="text-align: center;">
+                    <h2 style="margin: 0; color: #666;">248</h2>
+                    <p>总预警数</p>
+                </div>
+            </div>
+            <div class="grid-item">
+                <div class="card" style="text-align: center;">
+                    <h2 style="margin: 0; color: #dc3545;">23</h2>
+                    <p>高风险</p>
+                </div>
+            </div>
+            <div class="grid-item">
+                <div class="card" style="text-align: center;">
+                    <h2 style="margin: 0; color: #ffc107;">225</h2>
+                    <p>中风险</p>
+                </div>
+            </div>
+            <div class="grid-item">
+                <div class="card" style="text-align: center;">
+                    <h2 style="margin: 0; color: #007bff;">45</h2>
+                    <p>未处理</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 预警记录表格 -->
+        <div class="card">
+            <div class="card-title">预警记录</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>选择</th>
+                        <th>预警类型</th>
+                        <th>风险等级</th>
+                        <th>预警标题</th>
+                        <th>触发时间</th>
+                        <th>处理状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>☐</td>
+                        <td>关键字预警</td>
+                        <td><span class="badge badge-high">高风险</span></td>
+                        <td>收款方关键字命中</td>
+                        <td>2024-01-15 14:30</td>
+                        <td>未处理</td>
+                        <td>
+                            <button class="button" style="font-size: 12px; padding: 4px 8px;">查看</button>
+                            <button class="button button-success" style="font-size: 12px; padding: 4px 8px;">处理</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>☐</td>
+                        <td>黑名单预警</td>
+                        <td><span class="badge badge-high">高风险</span></td>
+                        <td>收款方在黑名单中</td>
+                        <td>2024-01-15 13:45</td>
+                        <td>已处理</td>
+                        <td>
+                            <button class="button" style="font-size: 12px; padding: 4px 8px;">查看</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>☐</td>
+                        <td>频繁付款预警</td>
+                        <td><span class="badge badge-medium">中风险</span></td>
+                        <td>30日内多次付款</td>
+                        <td>2024-01-15 12:20</td>
+                        <td>未处理</td>
+                        <td>
+                            <button class="button" style="font-size: 12px; padding: 4px 8px;">查看</button>
+                            <button class="button button-success" style="font-size: 12px; padding: 4px 8px;">处理</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 第三部分：预警弹窗 -->
+    <div class="section">
+        <div class="section-title">3. 预警弹窗提示</div>
+        
+        <div class="notice">
+            <strong>触发场景：</strong>当用户提交支付申请时，如果命中预警规则，系统会立即弹出此预警窗口。
+        </div>
+        
+        <!-- 预警弹窗演示 -->
+        <div class="card" style="background-color: #fff2f2; border: 2px solid #dc3545;">
+            <div style="background-color: #dc3545; color: white; padding: 15px; margin: -15px -15px 15px -15px;">
+                <h3 style="margin: 0;">⚠️ 高风险预警提醒</h3>
+                <p style="margin: 5px 0 0 0;">检测到资金安全风险</p>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <p><strong>预警类型：</strong><span class="badge badge-high">黑名单预警</span></p>
+                <p><strong>风险等级：</strong><span class="badge badge-high">高风险</span></p>
+                <p><strong>触发时间：</strong>2024-01-15 14:30:25</p>
+            </div>
+            
+            <div class="notice">
+                <h4>预警信息</h4>
+                <p>收款方"风险企业A"在系统黑名单中，此次支付存在较高风险，建议立即停止操作并联系相关负责人确认。</p>
+            </div>
+            
+            <div style="background-color: #f8f9fa; padding: 15px; margin: 15px 0;">
+                <h4>详细信息</h4>
+                <p><strong>收款方：</strong>风险企业A</p>
+                <p><strong>账号：</strong>1234567890123456</p>
+                <p><strong>支付金额：</strong>¥500,000.00</p>
+                <p><strong>处置方式：</strong>直接拒绝</p>
+            </div>
+            
+            <div style="text-align: right;">
+                <button class="button">查看历史</button>
+                <button class="button button-danger">立即处理</button>
+                <button class="button">稍后处理</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第四部分：功能特性 -->
+    <div class="section">
+        <div class="section-title">4. 核心功能特性</div>
+        
+        <div class="grid">
+            <div class="grid-item">
+                <div class="card">
+                    <div class="card-title">🔍 11种预警类型</div>
+                    <ul>
+                        <li>关键字预警</li>
+                        <li>黑名单预警</li>
+                        <li>重复性预警（2种）</li>
+                        <li>司法冻结预警</li>
+                        <li>资金挪用预警（2种）</li>
+                        <li>关联方预警</li>
+                        <li>拖欠农民工预警（3种）</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="grid-item">
+                <div class="card">
+                    <div class="card-title">⚙️ 灵活配置</div>
+                    <ul>
+                        <li>预警级别：中风险/高风险</li>
+                        <li>处置方式：仅查看/直接拒绝/业主审核</li>
+                        <li>个性化参数配置</li>
+                        <li>批量操作支持</li>
+                        <li>快速配置模板</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="grid-item">
+                <div class="card">
+                    <div class="card-title">🛡️ 权限管理</div>
+                    <ul>
+                        <li>业主单位：完整配置权限</li>
+                        <li>施工单位：只能查看</li>
+                        <li>复核员：可处理预警</li>
+                        <li>操作权限验证</li>
+                        <li>安全审计日志</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="grid-item">
+                <div class="card">
+                    <div class="card-title">📊 智能管理</div>
+                    <ul>
+                        <li>实时预警展示</li>
+                        <li>多维度筛选</li>
+                        <li>统计分析</li>
+                        <li>批量处理</li>
+                        <li>数据导出</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notice" style="margin-top: 20px;">
+            <h4>🎯 业务价值</h4>
+            <p>本预警系统通过智能化的风险识别和灵活的配置管理，为建筑工程项目资金监管提供了全方位的安全保障：</p>
+            <ul>
+                <li><strong>风险防控：</strong>多维度预警规则，及时发现资金安全风险</li>
+                <li><strong>合规管理：</strong>确保农民工工资按时足额发放，避免拖欠风险</li>
+                <li><strong>效率提升：</strong>自动化预警处理，减少人工审核工作量</li>
+                <li><strong>透明监管：</strong>完整的预警记录和处理流程，确保监管透明</li>
+                <li><strong>灵活配置：</strong>根据项目特点灵活调整预警规则和参数</li>
+            </ul>
+        </div>
+    </div>
+
+    <div style="text-align: center; padding: 20px; color: #666;">
+        <p>预警参数设置系统原型演示 - 版本 1.0</p>
+    </div>
+</body>
+</html>
