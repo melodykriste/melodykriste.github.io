@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付流程演示 - 预警系统集成</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/warning-management.css">
+    <style>
+        .payment-step {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background-color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .payment-step.active {
+            border-color: #0d6efd;
+            background-color: #f8f9ff;
+        }
+        
+        .payment-step.completed {
+            border-color: #198754;
+            background-color: #f0fff4;
+        }
+        
+        .payment-step.warning {
+            border-color: #ffc107;
+            background-color: #fffbf0;
+        }
+        
+        .payment-step.error {
+            border-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        
+        .step-number.active {
+            background-color: #0d6efd;
+        }
+        
+        .step-number.completed {
+            background-color: #198754;
+        }
+        
+        .step-number.warning {
+            background-color: #ffc107;
+        }
+        
+        .step-number.error {
+            background-color: #dc3545;
+        }
+        
+        .warning-alert {
+            border-left: 4px solid #ffc107;
+            background-color: #fff8e1;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .error-alert {
+            border-left: 4px solid #dc3545;
+            background-color: #fff5f5;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        
+        .success-alert {
+            border-left: 4px solid #198754;
+            background-color: #f0fff4;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- 导航栏 -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="bi bi-credit-card me-2"></i>
+                    支付流程演示
+                </a>
+                <div class="navbar-nav ms-auto">
+                    <a href="warning-management.html" class="nav-link">
+                        <i class="bi bi-gear me-1"></i>
+                        预警管理
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="row">
+            <!-- 支付表单 -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            新建支付申请
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="paymentForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">支付类型</label>
+                                        <select class="form-select" id="paymentType" required>
+                                            <option value="">请选择支付类型</option>
+                                            <option value="material">材料款</option>
+                                            <option value="wage">农民工工资</option>
+                                            <option value="service">服务费</option>
+                                            <option value="other">其他</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">支付模块</label>
+                                        <select class="form-select" id="paymentModule" required>
+                                            <option value="">请选择支付模块</option>
+                                            <option value="general_payment">一般支付</option>
+                                            <option value="wage_payment">代发支付</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">付款单位</label>
+                                        <input type="text" class="form-control" id="payerCompany" value="XX建筑集团" readonly>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">付款账户</label>
+                                        <select class="form-select" id="payerAccount" required>
+                                            <option value="">请选择付款账户</option>
+                                            <option value="1234567890123456789">1234567890123456789</option>
+                                            <option value="1111222233334444555">1111222233334444555</option>
+                                            <option value="9999888877776666555">9999888877776666555</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">收款单位</label>
+                                        <input type="text" class="form-control" id="payeeName" placeholder="请输入收款单位名称" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">收款账户</label>
+                                        <input type="text" class="form-control" id="payeeAccount" placeholder="请输入收款账户" required>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">支付金额（元）</label>
+                                        <input type="number" class="form-control" id="amount" placeholder="0.00" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">账户类型</label>
+                                        <select class="form-select" id="accountType" required>
+                                            <option value="">请选择账户类型</option>
+                                            <option value="personal">个人账户</option>
+                                            <option value="corporate">对公账户</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">备注/摘要</label>
+                                <textarea class="form-control" id="remark" rows="3" placeholder="请输入支付备注或摘要信息"></textarea>
+                            </div>
+                            
+                            <!-- 农民工工资相关字段 -->
+                            <div id="wageFields" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">农民工姓名</label>
+                                            <input type="text" class="form-control" id="workerName" placeholder="请输入农民工姓名">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">工资期间</label>
+                                            <input type="month" class="form-control" id="payPeriod">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>
+                                    重置
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send me-1"></i>
+                                    提交支付申请
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 支付流程状态 -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="bi bi-list-check me-2"></i>
+                            支付流程状态
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="paymentSteps">
+                            <div class="payment-step" data-step="1">
+                                <div class="d-flex align-items-center">
+                                    <div class="step-number">1</div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">填写支付信息</h6>
+                                        <small class="text-muted">请完整填写支付申请表单</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="payment-step" data-step="2">
+                                <div class="d-flex align-items-center">
+                                    <div class="step-number">2</div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">预警规则检查</h6>
+                                        <small class="text-muted">系统自动检查各项预警规则</small>
+                                    </div>
+                                </div>
+                                <div id="warningResults" style="display: none;"></div>
+                            </div>
+                            
+                            <div class="payment-step" data-step="3">
+                                <div class="d-flex align-items-center">
+                                    <div class="step-number">3</div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">风险评估</h6>
+                                        <small class="text-muted">评估支付风险等级</small>
+                                    </div>
+                                </div>
+                                <div id="riskAssessment" style="display: none;"></div>
+                            </div>
+                            
+                            <div class="payment-step" data-step="4">
+                                <div class="d-flex align-items-center">
+                                    <div class="step-number">4</div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">处置决策</h6>
+                                        <small class="text-muted">根据预警结果进行处置</small>
+                                    </div>
+                                </div>
+                                <div id="disposalDecision" style="display: none;"></div>
+                            </div>
+                            
+                            <div class="payment-step" data-step="5">
+                                <div class="d-flex align-items-center">
+                                    <div class="step-number">5</div>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">支付结果</h6>
+                                        <small class="text-muted">最终支付处理结果</small>
+                                    </div>
+                                </div>
+                                <div id="paymentResult" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 预警详情卡片 -->
+                <div class="card mt-3" id="warningDetailsCard" style="display: none;">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            预警详情
+                        </h5>
+                    </div>
+                    <div class="card-body" id="warningDetailsContent">
+                        <!-- 预警详情内容将在这里动态生成 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 测试数据快速填充按钮 -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-lightning me-2"></i>
+                            快速测试
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3">点击下面的按钮快速填充不同类型的测试数据，体验各种预警场景：</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="fillTestData('keyword')">
+                                关键字预警测试
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="fillTestData('blacklist')">
+                                黑名单预警测试
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm" onclick="fillTestData('duplicate')">
+                                重复性预警测试
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="fillTestData('judicial')">
+                                司法冻结预警测试
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="fillTestData('wage')">
+                                农民工工资预警测试
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="fillTestData('normal')">
+                                正常支付测试
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/warning-management.js"></script>
+    <script>
+        // 支付流程演示脚本
+        let currentStep = 1;
+        let paymentData = {};
+        let warningSystem;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初始化预警系统
+            warningSystem = new WarningManagementSystem();
+            
+            // 绑定表单事件
+            document.getElementById('paymentForm').addEventListener('submit', handlePaymentSubmit);
+            
+            // 绑定支付类型变化事件
+            document.getElementById('paymentType').addEventListener('change', handlePaymentTypeChange);
+            
+            // 设置初始状态
+            updateStepStatus(1, 'active');
+        });
+
+        function handlePaymentTypeChange(e) {
+            const wageFields = document.getElementById('wageFields');
+            if (e.target.value === 'wage') {
+                wageFields.style.display = 'block';
+            } else {
+                wageFields.style.display = 'none';
+            }
+        }
+
+        function handlePaymentSubmit(e) {
+            e.preventDefault();
+            
+            // 收集表单数据
+            paymentData = collectFormData();
+            
+            // 开始支付流程
+            startPaymentProcess();
+        }
+
+        function collectFormData() {
+            return {
+                id: Date.now().toString(),
+                paymentType: document.getElementById('paymentType').value,
+                module: document.getElementById('paymentModule').value,
+                payerCompany: document.getElementById('payerCompany').value,
+                payerAccount: document.getElementById('payerAccount').value,
+                payeeName: document.getElementById('payeeName').value,
+                payeeAccount: document.getElementById('payeeAccount').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                accountType: document.getElementById('accountType').value,
+                remark: document.getElementById('remark').value,
+                workerName: document.getElementById('workerName').value,
+                payPeriod: document.getElementById('payPeriod').value,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        async function startPaymentProcess() {
+            // 步骤1：完成表单填写
+            updateStepStatus(1, 'completed');
+            await delay(500);
+            
+            // 步骤2：预警规则检查
+            updateStepStatus(2, 'active');
+            await delay(1000);
+            
+            const warnings = warningSystem.checkWarnings(paymentData);
+            displayWarningResults(warnings);
+            
+            if (warnings.length > 0) {
+                updateStepStatus(2, 'warning');
+                showWarningDetails(warnings);
+            } else {
+                updateStepStatus(2, 'completed');
+            }
+            
+            await delay(1000);
+            
+            // 步骤3：风险评估
+            updateStepStatus(3, 'active');
+            await delay(1000);
+            
+            const riskLevel = assessRisk(warnings);
+            displayRiskAssessment(riskLevel, warnings);
+            updateStepStatus(3, 'completed');
+            
+            await delay(1000);
+            
+            // 步骤4：处置决策
+            updateStepStatus(4, 'active');
+            await delay(1000);
+            
+            const decision = makeDisposalDecision(warnings);
+            displayDisposalDecision(decision, warnings);
+            
+            if (decision.action === 'reject') {
+                updateStepStatus(4, 'error');
+            } else if (decision.action === 'review') {
+                updateStepStatus(4, 'warning');
+            } else {
+                updateStepStatus(4, 'completed');
+            }
+            
+            await delay(1000);
+            
+            // 步骤5：支付结果
+            updateStepStatus(5, 'active');
+            await delay(1000);
+            
+            const result = processPayment(decision);
+            displayPaymentResult(result);
+            
+            if (result.success) {
+                updateStepStatus(5, 'completed');
+            } else {
+                updateStepStatus(5, 'error');
+            }
+        }
+
+        function updateStepStatus(stepNumber, status) {
+            const step = document.querySelector(`[data-step="${stepNumber}"]`);
+            const stepNumberEl = step.querySelector('.step-number');
+            
+            // 清除之前的状态
+            step.classList.remove('active', 'completed', 'warning', 'error');
+            stepNumberEl.classList.remove('active', 'completed', 'warning', 'error');
+            
+            // 设置新状态
+            step.classList.add(status);
+            stepNumberEl.classList.add(status);
+            
+            // 更新图标
+            if (status === 'completed') {
+                stepNumberEl.innerHTML = '<i class="bi bi-check"></i>';
+            } else if (status === 'warning') {
+                stepNumberEl.innerHTML = '<i class="bi bi-exclamation-triangle"></i>';
+            } else if (status === 'error') {
+                stepNumberEl.innerHTML = '<i class="bi bi-x"></i>';
+            } else {
+                stepNumberEl.textContent = stepNumber;
+            }
+        }
+
+        function displayWarningResults(warnings) {
+            const container = document.getElementById('warningResults');
+            container.style.display = 'block';
+            
+            if (warnings.length === 0) {
+                container.innerHTML = '<div class="success-alert"><i class="bi bi-check-circle me-2"></i>未发现预警风险</div>';
+            } else {
+                let html = `<div class="warning-alert"><i class="bi bi-exclamation-triangle me-2"></i>发现 ${warnings.length} 项预警：</div>`;
+                warnings.forEach((warning, index) => {
+                    html += `<div class="alert alert-warning alert-sm mt-2">
+                        <strong>${index + 1}. ${warningSystem.getWarningTypeDisplayName(warning.type)}</strong><br>
+                        ${warning.message}
+                    </div>`;
+                });
+                container.innerHTML = html;
+            }
+        }
+
+        function assessRisk(warnings) {
+            if (warnings.length === 0) return 'low';
+            
+            const hasHighRisk = warnings.some(w => w.level === 'high');
+            if (hasHighRisk) return 'high';
+            
+            if (warnings.length >= 3) return 'high';
+            if (warnings.length >= 2) return 'medium';
+            return 'medium';
+        }
+
+        function displayRiskAssessment(riskLevel, warnings) {
+            const container = document.getElementById('riskAssessment');
+            container.style.display = 'block';
+            
+            const riskText = {
+                'low': '低风险',
+                'medium': '中风险',
+                'high': '高风险'
+            };
+            
+            const riskColor = {
+                'low': 'success',
+                'medium': 'warning',
+                'high': 'danger'
+            };
+            
+            container.innerHTML = `
+                <div class="alert alert-${riskColor[riskLevel]} mt-2">
+                    <strong>风险等级：</strong>
+                    <span class="badge bg-${riskColor[riskLevel]}">${riskText[riskLevel]}</span>
+                    <br>
+                    <small>基于 ${warnings.length} 项预警进行综合评估</small>
+                </div>
+            `;
+        }
+
+        function makeDisposalDecision(warnings) {
+            if (warnings.length === 0) {
+                return { action: 'approve', message: '无预警，直接通过' };
+            }
+            
+            // 检查是否有直接拒绝的预警
+            const rejectWarning = warnings.find(w => w.action === 'reject');
+            if (rejectWarning) {
+                return { 
+                    action: 'reject', 
+                    message: '存在需要直接拒绝的预警',
+                    warning: rejectWarning 
+                };
+            }
+            
+            // 检查是否有需要业主审核的预警
+            const reviewWarning = warnings.find(w => w.action === 'review');
+            if (reviewWarning) {
+                return { 
+                    action: 'review', 
+                    message: '需要提交业主审核',
+                    warning: reviewWarning 
+                };
+            }
+            
+            // 仅查看类预警，可以通过但需要记录
+            return { 
+                action: 'approve_with_warning', 
+                message: '存在预警但可以通过，已记录预警信息' 
+            };
+        }
+
+        function displayDisposalDecision(decision, warnings) {
+            const container = document.getElementById('disposalDecision');
+            container.style.display = 'block';
+            
+            let alertClass = 'info';
+            let icon = 'info-circle';
+            
+            switch (decision.action) {
+                case 'reject':
+                    alertClass = 'danger';
+                    icon = 'x-circle';
+                    break;
+                case 'review':
+                    alertClass = 'warning';
+                    icon = 'clock';
+                    break;
+                case 'approve':
+                    alertClass = 'success';
+                    icon = 'check-circle';
+                    break;
+                case 'approve_with_warning':
+                    alertClass = 'warning';
+                    icon = 'exclamation-triangle';
+                    break;
+            }
+            
+            container.innerHTML = `
+                <div class="alert alert-${alertClass} mt-2">
+                    <i class="bi bi-${icon} me-2"></i>
+                    <strong>处置决策：</strong>${decision.message}
+                </div>
+            `;
+        }
+
+        function processPayment(decision) {
+            switch (decision.action) {
+                case 'reject':
+                    return {
+                        success: false,
+                        message: '支付被拒绝',
+                        reason: decision.message
+                    };
+                case 'review':
+                    return {
+                        success: true,
+                        message: '支付已提交业主审核',
+                        status: 'pending_review'
+                    };
+                case 'approve':
+                    return {
+                        success: true,
+                        message: '支付成功',
+                        status: 'completed'
+                    };
+                case 'approve_with_warning':
+                    return {
+                        success: true,
+                        message: '支付成功（存在预警记录）',
+                        status: 'completed_with_warning'
+                    };
+                default:
+                    return {
+                        success: false,
+                        message: '未知错误'
+                    };
+            }
+        }
+
+        function displayPaymentResult(result) {
+            const container = document.getElementById('paymentResult');
+            container.style.display = 'block';
+            
+            const alertClass = result.success ? 'success' : 'danger';
+            const icon = result.success ? 'check-circle' : 'x-circle';
+            
+            let html = `
+                <div class="alert alert-${alertClass} mt-2">
+                    <i class="bi bi-${icon} me-2"></i>
+                    <strong>处理结果：</strong>${result.message}
+            `;
+            
+            if (result.reason) {
+                html += `<br><small>原因：${result.reason}</small>`;
+            }
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        function showWarningDetails(warnings) {
+            const card = document.getElementById('warningDetailsCard');
+            const content = document.getElementById('warningDetailsContent');
+            
+            let html = '';
+            warnings.forEach((warning, index) => {
+                html += `
+                    <div class="mb-3 ${index > 0 ? 'border-top pt-3' : ''}">
+                        <h6 class="text-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            ${warningSystem.getWarningTypeDisplayName(warning.type)}
+                        </h6>
+                        <p class="mb-2">${warning.message}</p>
+                        <div class="row text-sm">
+                            <div class="col-6">
+                                <strong>风险等级：</strong>
+                                <span class="badge ${warning.level === 'high' ? 'bg-danger' : 'bg-warning'}">${warning.level === 'high' ? '高风险' : '中风险'}</span>
+                            </div>
+                            <div class="col-6">
+                                <strong>处置方式：</strong>
+                                <span class="badge bg-info">${getActionText(warning.action)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html;
+            card.style.display = 'block';
+        }
+
+        function getActionText(action) {
+            const actionMap = {
+                'view': '仅查看',
+                'reject': '直接拒绝',
+                'review': '业主审核'
+            };
+            return actionMap[action] || action;
+        }
+
+        // 快速填充测试数据
+        function fillTestData(type) {
+            resetForm();
+            
+            const testData = {
+                keyword: {
+                    paymentType: 'material',
+                    paymentModule: 'general_payment',
+                    payerAccount: '1234567890123456789',
+                    payeeName: '测试供应商',
+                    payeeAccount: '9876543210987654321',
+                    amount: '50000',
+                    accountType: 'corporate',
+                    remark: '购买现金材料款项'
+                },
+                blacklist: {
+                    paymentType: 'service',
+                    paymentModule: 'general_payment',
+                    payerAccount: '1234567890123456789',
+                    payeeName: '违规公司A',
+                    payeeAccount: '1234567890123456789',
+                    amount: '30000',
+                    accountType: 'corporate',
+                    remark: '服务费支付'
+                },
+                duplicate: {
+                    paymentType: 'material',
+                    paymentModule: 'general_payment',
+                    payerAccount: '1234567890123456789',
+                    payeeName: '重复收款方',
+                    payeeAccount: '1111222233334444555',
+                    amount: '25000',
+                    accountType: 'corporate',
+                    remark: '材料采购款'
+                },
+                judicial: {
+                    paymentType: 'other',
+                    paymentModule: 'general_payment',
+                    payerAccount: '1111222233334444555',
+                    payeeName: '普通供应商',
+                    payeeAccount: '9999888877776666555',
+                    amount: '15000',
+                    accountType: 'corporate',
+                    remark: '其他费用'
+                },
+                wage: {
+                    paymentType: 'wage',
+                    paymentModule: 'wage_payment',
+                    payerAccount: '1234567890123456789',
+                    payeeName: '张三',
+                    payeeAccount: '6666777788889999000',
+                    amount: '25000',
+                    accountType: 'personal',
+                    remark: '农民工工资发放',
+                    workerName: '张三',
+                    payPeriod: '2024-01'
+                },
+                normal: {
+                    paymentType: 'material',
+                    paymentModule: 'general_payment',
+                    payerAccount: '1234567890123456789',
+                    payeeName: '正常供应商',
+                    payeeAccount: '5555444433332222111',
+                    amount: '10000',
+                    accountType: 'corporate',
+                    remark: '正常材料采购'
+                }
+            };
+            
+            const data = testData[type];
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = data[key];
+                        if (key === 'paymentType') {
+                            handlePaymentTypeChange({ target: element });
+                        }
+                    }
+                });
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('paymentForm').reset();
+            document.getElementById('wageFields').style.display = 'none';
+            
+            // 重置流程状态
+            for (let i = 1; i <= 5; i++) {
+                const step = document.querySelector(`[data-step="${i}"]`);
+                const stepNumber = step.querySelector('.step-number');
+                step.classList.remove('active', 'completed', 'warning', 'error');
+                stepNumber.classList.remove('active', 'completed', 'warning', 'error');
+                stepNumber.textContent = i;
+                
+                // 隐藏步骤内容
+                const containers = ['warningResults', 'riskAssessment', 'disposalDecision', 'paymentResult'];
+                containers.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.style.display = 'none';
+                });
+            }
+            
+            // 隐藏预警详情
+            document.getElementById('warningDetailsCard').style.display = 'none';
+            
+            // 设置第一步为活跃状态
+            updateStepStatus(1, 'active');
+            currentStep = 1;
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
